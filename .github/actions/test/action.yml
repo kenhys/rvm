@@ -16,7 +16,15 @@ runs:
       shell: bash
 
     - run: source ~/.rvm/scripts/rvm && rvm use ${{ inputs.ruby }} --install --default
+      id: install_ruby
       shell: bash
+
+    - name: Dump logs on failure
+      if: failure() && steps:install_ruby.outcome == 'failure' && ${{ runner.os == 'macOS' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: rvm-make-logs
+        path: /Users/runner/.rvm/log/**/make.log
 
     - run: source ~/.rvm/scripts/rvm && gem install tf -v '>=0.4.6'
       shell: bash
