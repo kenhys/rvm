@@ -8,6 +8,10 @@ inputs:
   test:
     description: Test path
     required: true
+  rubies:
+    description: Rubies used in the tests, separated by spaces
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -15,13 +19,17 @@ runs:
     - run: ./install
       shell: bash
 
-    - run: source ~/.rvm/scripts/rvm && rvm use ${{ inputs.ruby }} --install --default
+    - run: bash "$GITHUB_ACTION_PATH/install-rubies.sh" --default ${{ inputs.ruby }}
       shell: bash
 
     - run: source ~/.rvm/scripts/rvm && gem install tf -v '>=0.4.6'
       shell: bash
 
-    - run: source ~/.rvm/scripts/rvm && tf --text ${{ inputs.test }}
+    - if: ${{ inputs.rubies != '' }}
+      run: bash "$GITHUB_ACTION_PATH/install-rubies.sh" ${{ inputs.rubies }}
+      shell: bash
+
+    - run: bash "$GITHUB_ACTION_PATH/run-tests.sh" ${{ inputs.test }}
       shell: bash
       env:
         TF_DEBUG: 1
